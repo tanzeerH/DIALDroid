@@ -1,7 +1,13 @@
 package com.yaogroup.collusion;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+
+import javax.xml.stream.XMLStreamException;
 
 import com.yaogroup.db.DialDroidSQLConnection;
 
@@ -14,13 +20,19 @@ import soot.SootMethod;
 import soot.Unit;
 import soot.jimple.Stmt;
 import soot.jimple.infoflow.android.TestApps.Test;
+import soot.jimple.infoflow.handlers.ResultsAvailableHandler;
+import soot.jimple.infoflow.handlers.ResultsAvailableHandler2;
 import soot.jimple.infoflow.results.InfoflowResults;
 import soot.jimple.infoflow.results.ResultSinkInfo;
 import soot.jimple.infoflow.results.ResultSourceInfo;
+import soot.jimple.infoflow.results.xml.InfoflowResultsSerializer;
+import soot.jimple.infoflow.solver.cfg.IInfoflowCFG;
 import soot.tagkit.LineNumberTag;
 
-public class AppAnalysis {
+public class AppAnalysis{
 
+	
+	
 	private static int getIdForUnit(Unit unit, SootMethod method) {
 		int id = 0;
 		for (Unit currentUnit : method.getActiveBody().getUnits()) {
@@ -32,6 +44,7 @@ public class AppAnalysis {
 
 		return -1;
 	}
+	
 
 	private static void getApkList(File apkFileOrDirectory, ArrayList<File> apkList) {
 
@@ -51,7 +64,23 @@ public class AppAnalysis {
 		}
 
 	}
-
+	private static ResultsAvailableHandler myResultsAvailableHandler=new ResultsAvailableHandler() {
+		
+		@Override
+		public boolean onSingleResultAvailable(ResultSourceInfo source, ResultSinkInfo sinks) {
+			System.out.println("incremental printing in dialdroid");
+			System.out.println(("\t- " + source.getSource() + " (in "));
+			if (source.getPath() != null)
+				System.out.println(("\t\ton Path " + Arrays.toString(source.getPath())));	
+			return false;
+		}
+		
+		@Override
+		public void onResultsAvailable(IInfoflowCFG cfg, InfoflowResults results) {
+			// TODO Auto-generated method stub
+			
+		}
+	};
 	public static void main(String[] args) {
 
 		if (args.length < 4) {
@@ -61,6 +90,7 @@ public class AppAnalysis {
 
 		String dbName = args[2].trim();
 		String dbHost = args[3].trim();
+		System.out.println(dbName+" "+ dbHost);
 		
 		Table.setDBHost(dbHost);
 		DialDroidSQLConnection.init(dbName, "./cc.properties", null, 3306);
@@ -111,19 +141,20 @@ public class AppAnalysis {
 				//DialDroidSQLConnection.saveAppCategory(appCategory, apkFile.getAbsolutePath());
 				//Timers.v().saveTimeToDb();
 
+				
 				Timers.v().exitPathTimer.start();
-				InfoflowResults results = soot.jimple.infoflow.android.TestApps.Test.runAnalysisForResults(
+				InfoflowResults results = soot.jimple.infoflow.android.TestApps.Test.runAnalysisForResultsWithIncrementalReporting(
 						new String[] { apkFile.getAbsolutePath(), classPath,
-								"--aplength", "2", "--timeout", "450" });
+								"--aplength", "2", "--timeout", "450" },myResultsAvailableHandler);
 
 				if (Test.InfoFlowComputationTimeOut) {
 					InfoFlowComputationTimeOut = true;
 					System.out.println(
 							"Infoflow computation timeout with Context sensitive path builder. Running sourcesonly..");
-					results = soot.jimple.infoflow.android.TestApps.Test.runAnalysisForResults(new String[] {
+					results = soot.jimple.infoflow.android.TestApps.Test.runAnalysisForResultsWithIncrementalReporting(new String[] {
 							apkFile.getAbsolutePath(), classPath,
 							"--pathalgo", "SOURCESONLY", "--aplength", "1", "--NOPATHS", "--layoutmode", "none",
-							"--aliasflowins", "--noarraysize", "--timeout", "450" });
+							"--aliasflowins", "--noarraysize", "--timeout", "450" },myResultsAvailableHandler);
 				}
 
 				DialDroidSQLConnection.insertSourceSinkCount(InfoflowResults.numSources, InfoflowResults.numSinks);
@@ -174,19 +205,19 @@ public class AppAnalysis {
 				}
 
 				Timers.v().entryPathTimer.start();
-				results = soot.jimple.infoflow.android.TestApps.Test.runAnalysisForResults(
+				results = soot.jimple.infoflow.android.TestApps.Test.runAnalysisForResultsWithIncrementalReporting(
 						new String[] { apkFile.getAbsolutePath(), classPath,
-								"--iccentry", "--aplength", "1", "--timeout", "450" });
+								"--iccentry", "--aplength", "1", "--timeout", "450" }, myResultsAvailableHandler);
 
 				if (Test.InfoFlowComputationTimeOut) {
 					InfoFlowComputationTimeOut = true;
 					System.out.println(
 							"Infoflow computation timeout with Context sensitive path builder. Running sourcesonly..");
-					results = soot.jimple.infoflow.android.TestApps.Test.runAnalysisForResults(new String[] {
+					results = soot.jimple.infoflow.android.TestApps.Test.runAnalysisForResultsWithIncrementalReporting(new String[] {
 							apkFile.getAbsolutePath(), classPath,
 							"--iccentry", "--pathalgo", "SOURCESONLY", "--aplength", "1", "--nopaths", "--layoutmode",
 							"none", "--aliasflowins", "--noarraysize",  "--nostatic", "--timeout",
-							"450" });
+							"450" },myResultsAvailableHandler);
 				}
 
 				Timers.v().entryPathTimer.end();
