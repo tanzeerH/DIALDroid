@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -67,11 +68,13 @@ public class AppAnalysis{
 	private static ResultsAvailableHandler myResultsAvailableHandler=new ResultsAvailableHandler() {
 		
 		@Override
-		public boolean onSingleResultAvailable(ResultSourceInfo source, ResultSinkInfo sinks) {
+		public boolean onSingleResultAvailable(IInfoflowCFG cfg, ResultSourceInfo source, ResultSinkInfo sinks) {
 			System.out.println("incremental printing in dialdroid");
 			System.out.println(("\t- " + source.getSource() + " (in "));
 			if (source.getPath() != null)
-				System.out.println(("\t\ton Path " + Arrays.toString(source.getPath())));	
+				System.out.println(("\t\ton Path " + Arrays.toString(source.getPath())));
+			
+			insertIncrementalUpdatesIndatabse(cfg, source, sinks);
 			return false;
 		}
 		
@@ -81,6 +84,44 @@ public class AppAnalysis{
 			
 		}
 	};
+	private static void insertIncrementalUpdatesIndatabse(IInfoflowCFG cfg, ResultSourceInfo source, ResultSinkInfo sinks)
+	{
+		try {
+			SootMethod method = cfg.getMethodOf(sinks.getSink());
+
+			String className = cfg.getMethodOf(sinks.getSink()).getDeclaringClass().toString();
+
+			int instruction = getIdForUnit(sinks.getSink(), cfg.getMethodOf(sinks.getSink()));
+
+			if (sinks.getSink().hasTag("LineNumberTag")) {
+				instruction = ((LineNumberTag) sinks.getSink().getTag("LineNumberTag")).getLineNumber();
+			}
+
+			String leakSource = source.getSource().toString();
+			String methodCalling = null;
+
+			try {
+				methodCalling = source.getSource().getInvokeExpr().getMethod().getName();
+			} catch (Exception e) {
+
+			}
+
+			String leakSink = sinks.getSink().toString();
+			StringBuffer leakPath = new StringBuffer();
+
+			if (source.getPath() != null) {
+				for (Stmt stmt : source.getPath()) {
+					leakPath.append(stmt.toString() + ",");
+				}
+			}
+
+			DialDroidSQLConnection.insertDataLeak(className, method, instruction, sinks.getSink(), leakSource, leakSink,
+					leakPath.toString(), methodCalling);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+	}
 	public static void main(String[] args) {
 
 		if (args.length < 4) {
