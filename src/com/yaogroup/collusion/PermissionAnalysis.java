@@ -11,6 +11,7 @@ import soot.jimple.infoflow.android.data.parsers.PermissionMethodParser;
 public class PermissionAnalysis {
 
   private static PermissionMethodParser pmp;
+  private static Set<soot.jimple.infoflow.source.data.SourceSinkDefinition> sourceList;
 
   public static ArrayList<String> getPermissionList(String methodName) {
 
@@ -25,9 +26,10 @@ public class PermissionAnalysis {
 
       if (pmp == null) {
         pmp = PermissionMethodParser.fromStringList(ICCExitPointSourceSink.getList());
+        sourceList = pmp.getSources();
       }
 
-      Set<soot.jimple.infoflow.source.data.SourceSinkDefinition> sourceList = pmp.getSources();
+      
 
       for (soot.jimple.infoflow.source.data.SourceSinkDefinition source : sourceList) {
 

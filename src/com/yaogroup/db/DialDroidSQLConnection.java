@@ -27,14 +27,14 @@ public class DialDroidSQLConnection extends SQLConnection {
 
   
   
-  protected static int insertExitPoint(String className, String method, int instruction,
+  protected static synchronized int insertExitPoint(String className, String method, int instruction,
       String exit_kind, Integer missingIntentFilters, Unit unit) throws SQLException {
     int classId = insertClass(className);
     return exitPointTable.insert(classId, method, instruction, exit_kind, missingIntentFilters,
         unit.toString());
   }
 
-  public static void insertDataLeak(String className, SootMethod method, int instruction, Unit unit,
+  public static synchronized void insertDataLeak(String className, SootMethod method, int instruction, Unit unit,
       String source, String sink, String path, String methodCalling) throws SQLException {
 
     String exit_kind = "a";
@@ -62,7 +62,7 @@ public class DialDroidSQLConnection extends SQLConnection {
 
   }
 
-  public static void insertFromICCDataLeak(String className, String method, int instruction,
+  public static synchronized void insertFromICCDataLeak(String className, String method, int instruction,
       Unit unit, String source, String sink, String path) throws SQLException {
     int classId = insertClass(className);
     int entryPointID = entryPointTable.insert(classId, method, instruction, source);
