@@ -6,7 +6,7 @@
 	<classpathentry kind="lib" path="lib/infoflow-dialdroid.jar" sourcepath="/infoflow-dialdroid"/>
 	<classpathentry kind="lib" path="lib/soot-dialdroid.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="lib/ic3-dialdroid-classes.jar" sourcepath="/ic3-dialdroid"/>
+	<classpathentry kind="lib" path="lib/ic3-dialdroid-classes.jar" sourcepath="/home/tanzeer/DialDroid-repos/ic3-dialdroid"/>
 	<classpathentry kind="lib" path="lib/jsch-0.1.51.jar"/>
 	<classpathentry kind="lib" path="lib/axml-2.0.0.jar"/>
 	<classpathentry kind="lib" path="lib/coal-0.1.7.jar"/>

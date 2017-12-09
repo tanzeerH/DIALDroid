@@ -5,7 +5,7 @@ import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
-
+import java.util.HashSet;
 
 import com.yaogroup.collusion.PermissionAnalysis;
 
@@ -27,13 +27,14 @@ public class DialDroidSQLConnection extends SQLConnection {
 
   
   
+  
   protected static synchronized int insertExitPoint(String className, String method, int instruction,
       String exit_kind, Integer missingIntentFilters, Unit unit) throws SQLException {
     int classId = insertClass(className);
     return exitPointTable.insert(classId, method, instruction, exit_kind, missingIntentFilters,
         unit.toString());
   }
-
+  
   public static synchronized void insertDataLeak(String className, SootMethod method, int instruction, Unit unit,
       String source, String sink, String path, String methodCalling) throws SQLException {
 
@@ -54,14 +55,14 @@ public class DialDroidSQLConnection extends SQLConnection {
     
       ArrayList<String> permissions = PermissionAnalysis.getPermissionList(source);
       
-      int leakID = dataLeaksTable.insert(exitPointID, source, sink, path, methodCalling);
+      int leakID = dataLeaksTable.insert(exitPointID, source, sink, path, methodCalling,appId);
       
       for (String permission : permissions) { int permissionId =
       permissionStringTable.insert(permission); permissionLeakTable.insert(leakID, permissionId); }
      
 
   }
-
+  
   public static synchronized void insertFromICCDataLeak(String className, String method, int instruction,
       Unit unit, String source, String sink, String path) throws SQLException {
     int classId = insertClass(className);
