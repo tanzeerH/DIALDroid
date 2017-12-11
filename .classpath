@@ -2,22 +2,22 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="build/dialdroid.jar"/>
-	<classpathentry kind="lib" path="lib/infoflow-android-dialdroid.jar" sourcepath="/infoflow-android-dialdroid"/>
-	<classpathentry kind="lib" path="lib/infoflow-dialdroid.jar" sourcepath="/infoflow-dialdroid"/>
-	<classpathentry kind="lib" path="lib/soot-dialdroid.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/infoflow-android-dialdroid.jar" sourcepath="/infoflow-android-dialdroid"/>
+	<classpathentry exported="true" kind="lib" path="lib/infoflow-dialdroid.jar" sourcepath="/infoflow-dialdroid"/>
+	<classpathentry exported="true" kind="lib" path="lib/soot-dialdroid.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="lib/ic3-dialdroid-classes.jar" sourcepath="/home/tanzeer/DialDroid-repos/ic3-dialdroid"/>
-	<classpathentry kind="lib" path="lib/jsch-0.1.51.jar"/>
-	<classpathentry kind="lib" path="lib/axml-2.0.0.jar"/>
-	<classpathentry kind="lib" path="lib/coal-0.1.7.jar"/>
-	<classpathentry kind="lib" path="lib/coal-strings-0.1.2.jar"/>
-	<classpathentry kind="lib" path="lib/commons-cli-1.3.1.jar"/>
-	<classpathentry kind="lib" path="lib/herosclasses-trunk.jar"/>
-	<classpathentry kind="lib" path="lib/log4j-1.2.17.jar"/>
-	<classpathentry kind="lib" path="lib/mysql-connector-java-5.1.31.jar"/>
-	<classpathentry kind="lib" path="lib/protobuf-java-2.5.0.jar"/>
-	<classpathentry kind="lib" path="lib/slf4j-api-1.7.7.jar"/>
-	<classpathentry kind="lib" path="lib/slf4j-log4j12-1.7.13.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/ic3-dialdroid-classes.jar" sourcepath="/home/tanzeer/DialDroid-repos/ic3-dialdroid"/>
+	<classpathentry exported="true" kind="lib" path="lib/jsch-0.1.51.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axml-2.0.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/coal-0.1.7.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/coal-strings-0.1.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/commons-cli-1.3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/herosclasses-trunk.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/log4j-1.2.17.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/mysql-connector-java-5.1.31.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/protobuf-java-2.5.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/slf4j-api-1.7.7.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/slf4j-log4j12-1.7.13.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/infoflow-dialdroid"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
