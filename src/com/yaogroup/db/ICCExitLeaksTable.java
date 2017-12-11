@@ -21,6 +21,7 @@ public class ICCExitLeaksTable extends Table {
    */
   private static int  cacheAppID=-1;
   private static HashMap<String,Integer> hashSetDataleaks=new HashMap<>();
+  
   public static String MD5(String md5) {
 	   try {
 	        java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
@@ -73,7 +74,7 @@ public class ICCExitLeaksTable extends Table {
 	}
   
   
-	private static String generateMD5(int exitPoint,String leakSource, String leakSink, String leakPath, String method) {
+	public static String generateMD5(int exitPoint,String leakSource, String leakSink, String leakPath, String method) {
 		String concat=exitPoint+":"+leakSource+":"+leakSink+":"+leakPath+":"+method;
 		  String md5=MD5(concat);
 		return md5;

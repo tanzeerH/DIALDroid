@@ -2,23 +2,34 @@ package com.yaogroup.db;
 import edu.psu.cse.siis.ic3.db.Table;
 
 import java.sql.SQLException;
+import java.util.HashMap;
 
 public class ICCEntryLeaksTable extends Table {
   private static final String INSERT = "INSERT INTO ICCEntryLeaks "
       + "(entry_point_id, leak_source,leak_sink, leak_path) VALUES (?, ?,?, ?)";
 
+  private static int  cacheAppID=-1;
+  private static HashMap<String,Integer> hashSetEntryleaks=new HashMap<>();
   /*
+   * 
    * private static final String FIND =
    * "SELECT id FROM ExitPoints WHERE class_id = ? AND method = ? AND instruction = ? " +
    * "AND exit_kind = ?";
    */
 
-  public int insert(int entryPoint, String leakSource, String leakSink, String leakPath)
+  public int insert(int entryPoint, String leakSource, String leakSink, String leakPath, int AppID)
       throws SQLException {
-    // int id = find(classId, method, instruction, exit_kind);
-    // if (id != NOT_FOUND) {
-    // return id;
-    // }
+	  
+	  if (AppID != cacheAppID) {
+		  hashSetEntryleaks.clear();
+			cacheAppID = AppID;
+		}
+		String md5 = ICCExitLeaksTable.generateMD5(entryPoint,leakSource, leakSink, leakPath, "");
+		
+    if (hashSetEntryleaks.containsKey(md5)) {
+		System.out.println("found in cache");
+		return hashSetEntryleaks.get(md5);
+	}
     if (insertStatement == null || insertStatement.isClosed()) {
       insertStatement = getConnection().prepareStatement(INSERT);
     }
@@ -33,7 +44,9 @@ public class ICCEntryLeaksTable extends Table {
     if (insertStatement.executeUpdate() == 0) {
       return NOT_FOUND;
     }
-    return findAutoIncrement();
+    int row_id = findAutoIncrement();
+    hashSetEntryleaks.put(md5, row_id);
+	return row_id;
   }
 
   /*

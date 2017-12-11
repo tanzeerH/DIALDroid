@@ -65,7 +65,8 @@ public class AppAnalysis{
 		}
 
 	}
-	private static ResultsAvailableHandler myResultsAvailableHandler=new ResultsAvailableHandler() {
+	
+	private static ResultsAvailableHandler ExitResultsAvailableHandler=new ResultsAvailableHandler() {
 		
 		@Override
 		public boolean onSingleResultAvailable(IInfoflowCFG cfg, ResultSourceInfo source, ResultSinkInfo sinks) {
@@ -74,7 +75,7 @@ public class AppAnalysis{
 			if (source.getPath() != null)
 				System.out.println(("\t\ton Path " + Arrays.toString(source.getPath())));
 			
-			insertIncrementalUpdatesIndatabse(cfg, source, sinks);
+			insertIncrementalExitPoints(cfg, source, sinks);
 			return false;
 		}
 		
@@ -83,8 +84,9 @@ public class AppAnalysis{
 			// TODO Auto-generated method stub
 			
 		}
+		
 	};
-	private static void insertIncrementalUpdatesIndatabse(IInfoflowCFG cfg, ResultSourceInfo source, ResultSinkInfo sinks)
+	private static void insertIncrementalExitPoints(IInfoflowCFG cfg, ResultSourceInfo source, ResultSinkInfo sinks)
 	{
 		try {
 			SootMethod method = cfg.getMethodOf(sinks.getSink());
@@ -122,28 +124,94 @@ public class AppAnalysis{
 		}
 		
 	}
+	
+	private static ResultsAvailableHandler EntryResultsAvailableHandler=new ResultsAvailableHandler() {
+		
+		@Override
+		public boolean onSingleResultAvailable(IInfoflowCFG cfg, ResultSourceInfo source, ResultSinkInfo sinks) {
+			System.out.println("incremental printing in dialdroid");
+			System.out.println(("\t- " + source.getSource() + " (in "));
+			if (source.getPath() != null)
+				System.out.println(("\t\ton Path " + Arrays.toString(source.getPath())));
+			
+			insertIncrementalEntryPoints(cfg, source, sinks);
+			return false;
+		}
+		
+		@Override
+		public void onResultsAvailable(IInfoflowCFG cfg, InfoflowResults results) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+	};
+	
+	
+	private static void insertIncrementalEntryPoints(IInfoflowCFG cfg, ResultSourceInfo source, ResultSinkInfo sinks)
+	{
+		try {
+			SootMethod method = cfg.getMethodOf(sinks.getSink());
+
+			String className = cfg.getMethodOf(sinks.getSink()).getDeclaringClass().toString();
+
+			int instruction = getIdForUnit(sinks.getSink(), cfg.getMethodOf(sinks.getSink()));
+
+			if (sinks.getSink().hasTag("LineNumberTag")) {
+				instruction = ((LineNumberTag) sinks.getSink().getTag("LineNumberTag")).getLineNumber();
+			}
+
+			String leakSource = source.getSource().toString();
+			String methodCalling = null;
+
+			try {
+				methodCalling = source.getSource().getInvokeExpr().getMethod().getName();
+			} catch (Exception e) {
+
+			}
+
+			String leakSink = sinks.getSink().toString();
+			StringBuffer leakPath = new StringBuffer();
+
+			if (source.getPath() != null) {
+				for (Stmt stmt : source.getPath()) {
+					leakPath.append(stmt.toString() + ",");
+				}
+			}
+
+			DialDroidSQLConnection.insertFromICCDataLeak(className, method.toString(), instruction,
+					sinks.getSink(), leakSource, leakSink, leakPath.toString());
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
+
+	
 	public static void main(String[] args) {
 
 		if (args.length < 4) {
-			System.out.println("Invalid program usage!! use: computeicc|appanalysis classpath dbname dbhostname [directory] [category]");
+			System.out.println(
+					"Invalid program usage!! use: computeicc|appanalysis classpath dbname dbhostname [directory] [category]");
 			return;
 		}
 
 		String dbName = args[2].trim();
 		String dbHost = args[3].trim();
-		System.out.println(dbName+" "+ dbHost);
-		
+		System.out.println(dbName + " " + dbHost);
+
 		Table.setDBHost(dbHost);
 		DialDroidSQLConnection.init(dbName, "./cc.properties", null, 3306);
-		
+
 		if (args[0].compareToIgnoreCase("computeicc") == 0) {
-			
+
 			DialDroidSQLConnection.computeSensitiveChannels();
 			return;
 		}
 
 		if (args[0].compareToIgnoreCase("appanalysis") != 0) {
-			System.out.println("Invalid program usage!! use: computeicc|appanalysis classpath dbname dbhostname [directory] [category]");
+			System.out.println(
+					"Invalid program usage!! use: computeicc|appanalysis classpath dbname dbhostname [directory] [category]");
 			return;
 		}
 
@@ -153,8 +221,8 @@ public class AppAnalysis{
 
 		ArrayList<File> apkList = new ArrayList<File>();
 
-		getApkList(apkDirectory, apkList);		
-	
+		getApkList(apkDirectory, apkList);
+
 		for (File apkFile : apkList) {
 
 			try {
@@ -162,7 +230,7 @@ public class AppAnalysis{
 				String appName = apkFile.getName().toLowerCase();
 				appName = appName.substring(0, appName.indexOf(".apk"));
 				System.out.println(appName);
-				
+
 				String shasum = SHA256Calculator.getSHA256(apkFile);
 
 				if (SQLConnection.checkIfAppAnalyzed(shasum)) {
@@ -175,131 +243,31 @@ public class AppAnalysis{
 
 				boolean InfoFlowComputationTimeOut = false;
 
-				edu.psu.cse.siis.ic3.Main.main(new String[] { "-in", apkFile.getAbsolutePath(), "-cp",
-						classPath, "-db", "./cc.properties", "-dbname",
-						dbName, "-dbhost",dbHost });
+				edu.psu.cse.siis.ic3.Main.main(new String[] { "-in", apkFile.getAbsolutePath(), "-cp", classPath, "-db",
+						"./cc.properties", "-dbname", dbName, "-dbhost", dbHost });
 
-				//DialDroidSQLConnection.saveAppCategory(appCategory, apkFile.getAbsolutePath());
-				//Timers.v().saveTimeToDb();
+				// DialDroidSQLConnection.saveAppCategory(appCategory,
+				// apkFile.getAbsolutePath());
+				// Timers.v().saveTimeToDb();
 
-				
 				Timers.v().exitPathTimer.start();
-				InfoflowResults results = soot.jimple.infoflow.android.TestApps.Test.runAnalysisForResultsWithIncrementalReporting(
-						new String[] { apkFile.getAbsolutePath(), classPath,
-								"--aplength", "2", "--timeout", "450" },myResultsAvailableHandler);
+				InfoflowResults results = soot.jimple.infoflow.android.TestApps.Test
+						.runAnalysisForResultsWithIncrementalReporting(new String[] { apkFile.getAbsolutePath(),
+								classPath, "--aplength", "2", "--timeout", "540" }, ExitResultsAvailableHandler);
 
-				if (Test.InfoFlowComputationTimeOut) {
-					InfoFlowComputationTimeOut = true;
-					System.out.println(
-							"Infoflow computation timeout with Context sensitive path builder. Running sourcesonly..");
-					results = soot.jimple.infoflow.android.TestApps.Test.runAnalysisForResultsWithIncrementalReporting(new String[] {
-							apkFile.getAbsolutePath(), classPath,
-							"--pathalgo", "SOURCESONLY", "--aplength", "1", "--NOPATHS", "--layoutmode", "none",
-							"--aliasflowins", "--noarraysize", "--timeout", "450" },myResultsAvailableHandler);
-				}
-
+				//
 				DialDroidSQLConnection.insertSourceSinkCount(InfoflowResults.numSources, InfoflowResults.numSinks);
 				InfoflowResults.reset();
 
 				Timers.v().exitPathTimer.end();
 
-				if (results != null) {
-
-					for (ResultSinkInfo sink : results.getResults().keySet()) { //
-						SootMethod method = results.getInfoflowCFG().getMethodOf(sink.getSink());
-
-						String className = results.getInfoflowCFG().getMethodOf(sink.getSink()).getDeclaringClass()
-								.toString();
-
-						int instruction = getIdForUnit(sink.getSink(),
-								results.getInfoflowCFG().getMethodOf(sink.getSink()));
-
-						if (sink.getSink().hasTag("LineNumberTag")) {
-							instruction = ((LineNumberTag) sink.getSink().getTag("LineNumberTag")).getLineNumber();
-						}
-
-						for (ResultSourceInfo source : results.getResults().get(sink)) {
-
-							String leakSource = source.getSource().toString();
-							String methodCalling = null;
-
-							try {
-								methodCalling = source.getSource().getInvokeExpr().getMethod().getName();
-							} catch (Exception e) {
-
-							}
-
-							String leakSink = sink.getSink().toString();
-							StringBuffer leakPath = new StringBuffer();
-
-							if (source.getPath() != null) {
-								for (Stmt stmt : source.getPath()) {
-									leakPath.append(stmt.toString() + ",");
-								}
-							}
-
-							DialDroidSQLConnection.insertDataLeak(className, method, instruction, sink.getSink(),
-									leakSource, leakSink, leakPath.toString(), methodCalling);
-
-						}
-					}
-				}
-
 				Timers.v().entryPathTimer.start();
 				results = soot.jimple.infoflow.android.TestApps.Test.runAnalysisForResultsWithIncrementalReporting(
-						new String[] { apkFile.getAbsolutePath(), classPath,
-								"--iccentry", "--aplength", "1", "--timeout", "450" }, myResultsAvailableHandler);
-
-				if (Test.InfoFlowComputationTimeOut) {
-					InfoFlowComputationTimeOut = true;
-					System.out.println(
-							"Infoflow computation timeout with Context sensitive path builder. Running sourcesonly..");
-					results = soot.jimple.infoflow.android.TestApps.Test.runAnalysisForResultsWithIncrementalReporting(new String[] {
-							apkFile.getAbsolutePath(), classPath,
-							"--iccentry", "--pathalgo", "SOURCESONLY", "--aplength", "1", "--nopaths", "--layoutmode",
-							"none", "--aliasflowins", "--noarraysize",  "--nostatic", "--timeout",
-							"450" },myResultsAvailableHandler);
-				}
+						new String[] { apkFile.getAbsolutePath(), classPath, "--iccentry", "--aplength", "2",
+								"--timeout", "540" },
+						EntryResultsAvailableHandler);
 
 				Timers.v().entryPathTimer.end();
-
-				if (results != null) {
-					for (ResultSinkInfo sink : results.getResults().keySet()) { //
-
-						String method = results.getInfoflowCFG().getMethodOf(sink.getSink()).getSignature();
-
-						String className = results.getInfoflowCFG().getMethodOf(sink.getSink()).getDeclaringClass()
-								.toString();
-
-						int instruction = getIdForUnit(sink.getSink(),
-								results.getInfoflowCFG().getMethodOf(sink.getSink()));
-
-						if (sink.getSink().hasTag("LineNumberTag")) {
-							instruction = ((LineNumberTag) sink.getSink().getTag("LineNumberTag")).getLineNumber();
-						}
-
-						for (ResultSourceInfo source : results.getResults().get(sink)) {
-
-							String leakSource = source.getSource().toString();
-							String leakSink = sink.getSink().toString();
-							StringBuffer leakPath = new StringBuffer();
-
-							if (source.getPath() != null) {
-								for (Stmt stmt : source.getPath()) {
-									leakPath.append(stmt.toString() + ",");
-								}
-							}
-
-							DialDroidSQLConnection.insertFromICCDataLeak(className, method.toString(), instruction,
-									sink.getSink(), leakSource, leakSink, leakPath.toString());
-
-						}
-					}
-				}
-
-				if (InfoFlowComputationTimeOut) {
-					DialDroidSQLConnection.markAppTimeout();
-				}
 
 				Timers.v().analysisTimer.end();
 				Timers.v().saveTimeToDb();

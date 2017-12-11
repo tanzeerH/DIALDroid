@@ -67,7 +67,7 @@ public class DialDroidSQLConnection extends SQLConnection {
       Unit unit, String source, String sink, String path) throws SQLException {
     int classId = insertClass(className);
     int entryPointID = entryPointTable.insert(classId, method, instruction, source);
-    fromICCEntryDataLeaksTable.insert(entryPointID, source, sink, path);
+    fromICCEntryDataLeaksTable.insert(entryPointID, source, sink, path,appId);
 
   }
 
