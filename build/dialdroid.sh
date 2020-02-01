@@ -1,8 +1,8 @@
 #!/bin/bash
 
-dbname="dialdroid_test"
+dbname="collusion"
 jarfile="dialdroid.jar"
-classpath="/home/bosu/AndroidSDK/android-sdk-linux/platforms/"
+classpath="/home/amiangshu/ICCDROID/android-platforms/"
 dbhost="localhost"
 
 if [ "$#" -ne 2 ]; then
@@ -19,8 +19,7 @@ do
    if [[ $file == *.apk ]] 
    then
 	echo $file	
-	timeout $timelimit java -Xms16G -Xmx64G -jar $jarfile appanalysis $classpath  $dbname $dbhost $file $category
+	timeout $timelimit java -Xms4G -Xmx12G -jar $jarfile appanalysis $classpath  $dbname $dbhost $file $category
    fi
 done
 
-java -jar $jarfile computeicc $classpath $dbname $dbhost
